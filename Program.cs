@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace Tasks2
 {
     class Program
     {
-        public static async Task BlockFunction()
+        public static async Task BlockingFunction()
         {
             Console.WriteLine("Welcome to the blocking function in thread {0}", Thread.CurrentThread.ManagedThreadId);
             for (int i = 5; i > 0; i--)
@@ -19,27 +20,23 @@ namespace Tasks2
             }
         }
 
-        //static async Task TaskRunner()
-        //{
-        //    Console.WriteLine("Hey from task runner, the thread id I'm running on is {0}", Thread.CurrentThread.ManagedThreadId);
-        //    var task = Task.Run(HelloWorldTask);
-        //    Thread.Sleep(20);
-
-        //    Console.WriteLine("Kicked off task: task status is {0} on thread {1}.", task.Status, Thread.CurrentThread.ManagedThreadId);
-
-        //    await task;
-
-        //    Console.WriteLine("Task status is now {0}", task.Status);
-
-        //    Console.WriteLine("Leaving main!!");
-        //}
+        public static async Task<HttpResponseMessage> LongerBlockingFunction()
+        {
+            using (var client = new HttpClient())
+            {
+                var task = client.GetAsync("https://www.espn.com");
+                Console.WriteLine("Hello from longer blocking function! Which is running in thread {0}", Thread.CurrentThread.ManagedThreadId);
+                return await task;
+            }
+        }
 
         static async Task Main(string[] args)
         {
             Console.WriteLine("Welcome from thread {0}!", Thread.CurrentThread.ManagedThreadId);
-            var myTask = BlockFunction();
+            var myTask = LongerBlockingFunction();
             Console.WriteLine("Hello from the other siiiiiddeee!!! (which is thread {0})", Thread.CurrentThread.ManagedThreadId);
             await myTask;
+            Console.WriteLine(await myTask.Result.Content.ReadAsStringAsync());
             Console.WriteLine("We done");
 
             Console.ReadLine();
